@@ -1,0 +1,154 @@
+{
+  "info": {
+    "name": "Quote Service API",
+    "description": "Postman collection for Backend Internship Assignment — Node.js + TypeScript + FastAPI Integration",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000", "type": "string" },
+    { "key": "quoteId", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/health",
+        "description": "Verify the service is running"
+      }
+    },
+    {
+      "name": "Quotes",
+      "item": [
+        {
+          "name": "GET /quotes — List all quotes",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/quotes?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["quotes"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "search", "value": "", "disabled": true },
+                { "key": "status", "value": "New", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /quotes — Search with filters",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/quotes?search=ABC&status=In Review&page=1&limit=5",
+              "host": ["{{baseUrl}}"],
+              "path": ["quotes"],
+              "query": [
+                { "key": "search", "value": "ABC" },
+                { "key": "status", "value": "In Review" },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "5" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /quotes — Create quote (valid)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('quoteId', json.data.id);",
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Has id', () => pm.expect(json.data.id).to.be.a('string'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/quotes",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customer\": \"ABC Corp\",\n  \"project\": \"Office Renovation\",\n  \"estimated_value\": 150000\n}"
+            }
+          }
+        },
+        {
+          "name": "POST /quotes — Validation: missing customer",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/quotes",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"project\": \"Office Renovation\",\n  \"estimated_value\": 150000\n}"
+            }
+          }
+        },
+        {
+          "name": "POST /quotes — Validation: negative estimated_value",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/quotes",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customer\": \"XYZ Ltd\",\n  \"project\": \"Warehouse\",\n  \"estimated_value\": -5000\n}"
+            }
+          }
+        },
+        {
+          "name": "GET /quotes/:id — Get by ID",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/quotes/{{quoteId}}"
+          }
+        },
+        {
+          "name": "GET /quotes/:id — Not found",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/quotes/non-existent-id-123"
+          }
+        },
+        {
+          "name": "POST /quotes/:id/analyze — Trigger analysis",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/quotes/{{quoteId}}/analyze"
+          }
+        },
+        {
+          "name": "PATCH /quotes/:id/status — Update status (valid)",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/quotes/{{quoteId}}/status",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"In Review\"\n}"
+            }
+          }
+        },
+        {
+          "name": "PATCH /quotes/:id/status — Invalid status",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/quotes/{{quoteId}}/status",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"Pending\"\n}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
